@@ -57,4 +57,26 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function toggleVote($entity, $type)
+    {
+        $vote = $entity->votes->where('user_id', $this->id)->first();
+        if ($vote) {
+            $vote->update([
+                'type' => $type
+            ]);
+
+            return $vote->refresh();
+        } else {
+            return $entity->votes()->create([
+                'type' => $type,
+                'user_id' => $this->id
+            ]);
+        }
+    }
 }

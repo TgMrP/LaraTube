@@ -39,26 +39,51 @@
                     <div
                         class="progress-bar progress-bar-striped progress-bar-animated"
                         role="progressbar"
-                        :style="`width: ${progress[video.name]}%;`"
+                        :style="
+                            `width: ${video.percentage ||
+                                progress[video.name]}%;`
+                        "
                         aria-valuenow="50"
                         aria-valuemin="0"
                         aria-valuemax="100"
-                    ></div>
+                    >
+                        {{
+                            video.percentage
+                                ? video.percentage === 100
+                                    ? "Done"
+                                    : "Processing"
+                                : "Uploading"
+                        }}
+                    </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4">
                         <div
+                            v-if="!video.thumbnail"
                             class="d-flex justify-content-center align-items-center"
                             style="height: 180px; color: white; font-size: 18px; background: #808080;"
                         >
                             Loading thumbnail...
                         </div>
+                        <img
+                            v-else
+                            :src="video.thumbnail"
+                            style="width: 100%;"
+                            alt=""
+                        />
                     </div>
 
                     <div class="col-md-4">
-                        <h4 class="text-center">
-                            {{ video.name }}
+                        <a
+                            :href="`/videos/${video.id}`"
+                            target="_blank"
+                            v-if="video.percentage && video.percentage === 100"
+                        >
+                            {{ video.title }}
+                        </a>
+                        <h4 v-else class="text-center">
+                            {{ video.title || video.name }}
                         </h4>
                     </div>
                 </div>
@@ -80,7 +105,9 @@ export default {
         return {
             selected: false,
             videos: [],
-            progress: {}
+            progress: {},
+            uploads: [],
+            intervals: {}
         };
     },
     methods: {
@@ -99,13 +126,37 @@ export default {
                 form.append("video", video);
                 form.append("title", video.name);
 
-                return axios.post(`/channels/${this.channel.id}/videos`, form, {
-                    onUploadProgress: event => {
-                        this.progress[video.name] = Math.ceil(
-                            (event.loaded / event.total) * 100
-                        );
-                        this.$forceUpdate();
-                    }
+                return axios
+                    .post(`/channels/${this.channel.id}/videos`, form, {
+                        onUploadProgress: event => {
+                            this.progress[video.name] = Math.ceil(
+                                (event.loaded / event.total) * 100
+                            );
+                            this.$forceUpdate();
+                        }
+                    })
+                    .then(({ data }) => {
+                        this.uploads.push(data);
+                    });
+            });
+
+            axios.all(uploaders).then(() => {
+                this.videos = this.uploads;
+                this.videos.forEach(video => {
+                    this.intervals[video.id] = setInterval(() => {
+                        axios.get(`/videos/${video.id}`).then(({ data }) => {
+                            if (data.percentage === 100) {
+                                clearInterval(this.intervals[video.id]);
+                            }
+                            this.videos = this.videos.map(v => {
+                                if (v.id === data.id) {
+                                    return data;
+                                } else {
+                                    return v;
+                                }
+                            });
+                        });
+                    }, 3000);
                 });
             });
         }

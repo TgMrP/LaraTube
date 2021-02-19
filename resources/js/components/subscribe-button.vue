@@ -3,8 +3,8 @@
         type="button"
         class="btn"
         :class="{
-            'btn-danger': subscribed,
-            'btn-success': !subscribed,
+            'btn-success': subscribed,
+            'btn-danger': !subscribed,
             'btn-info': owner
         }"
         @click="toggleSubscription()"

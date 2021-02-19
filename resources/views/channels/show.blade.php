@@ -28,7 +28,11 @@
                                         </div>
                                         <input type="file" name="image" id="image" style="display: none;" onchange="document.getElementById('update-channel-form').submit()">
                                     @endif
-                                    <img src="{{$channel->image()}}" alt="" />
+                                    @if ($channel->image())
+                                    <img src="{{ $channel->image() }}" alt="" width="100" height="100">
+                                    @else
+                                    <avatar username="{{ $channel->name }}" :size="100"></avatar>
+                                    @endif
                                 </div>
                             </div>
 
@@ -85,6 +89,53 @@
                         @if($channel->editable())
                         </form>
                         @endif
+                    </div>
+                </div>
+
+                <div class="card mt-2">
+                    <div class="card-header">
+                        Videos
+                    </div>
+
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Views</th>
+                                <th>Status</th>
+                                <th></th>
+                            </thead>
+                            <tbody>
+                                @foreach ($videos as $video)
+                                    <tr>
+                                        <td>
+                                            <img src="{{ $video->thumbnail }}" alt="" width="40px" height="40px">
+                                        </td>
+                                        <td>
+                                            {{ $video->title }}
+                                        </td>
+                                        <td>
+                                            {{ $video->views }}
+                                        </td>
+                                        <td>
+                                            {{ $video->percentage === 100 ? 'Live' : 'Processing' }}
+                                        </td>
+                                        <td>
+                                            @if ($video->percentage === 100)
+                                            <a href="{{ route('videos.show', $video->id) }}" class="btn btn-sm btn-info">
+                                                View
+                                            </a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+
+                        <div class="row justify-content-center">
+                            {{ $videos->links() }}
+                        </div>
                     </div>
                 </div>
             </div>

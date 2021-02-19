@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 class ChannelController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware(['auth'])->only('update');
     }
 
@@ -49,7 +50,8 @@ class ChannelController extends Controller
      */
     public function show(Channel $channel)
     {
-        return view('channels.show', compact('channel'));
+        $videos = $channel->videos()->paginate(5);
+        return view('channels.show', compact('channel', 'videos'));
     }
 
     /**
@@ -72,12 +74,12 @@ class ChannelController extends Controller
      */
     public function update(UpdateChannelRequest $request, Channel $channel)
     {
-        if($request->hasFile('image')) {
+        if ($request->hasFile('image')) {
 
             $channel->clearMediaCollection('images');
 
             $channel->addMediaFromRequest('image')
-                    ->toMediaCollection('images');
+                ->toMediaCollection('images');
         }
 
         $channel->update([
@@ -86,7 +88,6 @@ class ChannelController extends Controller
         ]);
 
         return redirect()->back();
-
     }
 
     /**
