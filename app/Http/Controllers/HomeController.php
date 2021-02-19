@@ -27,7 +27,7 @@ class HomeController extends Controller
     {
         $query = request()->search;
 
-        $perPage = 1;
+        $perPage = 5;
 
         if ($query) {
             $videos = Video::where('title', 'LIKE', "%{$query}%")->orWhere('description', 'LIKE', "%{$query}%")->paginate($perPage);
